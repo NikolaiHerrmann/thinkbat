@@ -48,6 +48,10 @@ class ThinkBat:
         read_thresholds(is_start=False)
 
     def set_charge_thresholds(self, start, end):
+        def in_range(thresh):
+            return thresh > 1 and thresh <= 100
+        assert start < end and in_range(start) and in_range(end), "Invalid threshold!"
+        
         def write_threshold(value, is_start):
             try:
                 with open(self._get_thresh_path(is_start), "w") as f:
