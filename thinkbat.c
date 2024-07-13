@@ -1,4 +1,10 @@
-// Nikolai Herrmann 2024
+/**
+ * @name thinkbat.c
+ *
+ * @author Nikolai Herrmann
+ * @date 2024
+ * @details Monitor battery health for lenovo thinkpad.
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -6,17 +12,13 @@
 #include <unistd.h>
 #include <string.h>
 
-
 const char *START_THRESH = "/sys/class/power_supply/BAT0/charge_control_start_threshold";
 const char *STOP_THRESH = "/sys/class/power_supply/BAT0/charge_control_end_threshold";
 const char *STAT_SUMMARY = "/sys/class/power_supply/BAT0/uevent";
 
-
 int write_num_to_file(int num, const char *file_path)
 {
-    int file_access = access(file_path, W_OK);
-    
-    if (file_access != 0)
+    if (access(file_path, W_OK) != 0)
     {
         if (errno == EACCES)
             printf("Permission denied for: %s\n", file_path);
@@ -24,9 +26,9 @@ int write_num_to_file(int num, const char *file_path)
             printf("File access error for: %s\n", file_path);
         return -1;
     }
-    
+
     FILE *file = fopen(file_path, "w");
-    
+
     if (file == NULL)
     {
         printf("Error opening: %s\n", file_path);
@@ -35,7 +37,7 @@ int write_num_to_file(int num, const char *file_path)
 
     fprintf(file, "%d", num);
     fclose(file);
-    
+
     return 0;
 }
 
@@ -54,11 +56,8 @@ int change_thresholds(int start, int stop)
 
 char *split(char *str)
 {
-    while (*str != '\0')
+    while (*(str++) != '\0' && *str != '=')
     {
-        if (*str == '=')
-            break;
-        str++;
     }
     return str + 1;
 }
@@ -114,7 +113,7 @@ int display_thresh()
         printf("\tStop thresh: %d\%\n", stop);
         return 0;
     }
-    return -1;    
+    return -1;
 }
 
 void *check_resize(int size, int *max_size, int type_size, void *arr)
@@ -130,13 +129,13 @@ void *check_resize(int size, int *max_size, int type_size, void *arr)
 int stat_summary(const char *file_path)
 {
     FILE *file = fopen(file_path, "r");
-    
+
     if (file == NULL)
     {
         printf("Error opening: %s", file_path);
         return -1;
     }
-    
+
     int metric_mem_size = 5;
     int metric_idx = 0;
     char **metrics = malloc(metric_mem_size * sizeof(char *));
@@ -162,7 +161,7 @@ int stat_summary(const char *file_path)
                 break;
             }
             metrics[metric_idx++] = str;
-            
+
             str = malloc(str_mem_size * sizeof(char));
             if (str == NULL)
             {
@@ -171,7 +170,7 @@ int stat_summary(const char *file_path)
             }
             str_idx = 0;
         }
-        else 
+        else
         {
             str = check_resize(str_idx + 2, &str_mem_size, sizeof(char), str);
             if (str == NULL)
