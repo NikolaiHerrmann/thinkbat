@@ -145,7 +145,9 @@ int stat_summary(const char *file_path)
     int str_idx = 0;
     char *str = malloc(str_mem_size * sizeof(char));
 
-    do
+    int error_flag = (metrics == NULL || str == NULL);
+
+    while (error_flag == 0)
     {
         char ch = fgetc(file);
         if (ch == EOF)
@@ -154,28 +156,49 @@ int stat_summary(const char *file_path)
         {
             str[str_idx] = '\0';
             metrics = check_resize(metric_idx + 1, &metric_mem_size, sizeof(char *), metrics);
+            if (metrics == NULL)
+            {
+                error_flag = 1;
+                break;
+            }
             metrics[metric_idx++] = str;
+            
             str = malloc(str_mem_size * sizeof(char));
+            if (str == NULL)
+            {
+                error_flag = 1;
+                break;
+            }
             str_idx = 0;
         }
         else 
         {
             str = check_resize(str_idx + 2, &str_mem_size, sizeof(char), str);
+            if (str == NULL)
+            {
+                error_flag = 1;
+                break;
+            }
             str[str_idx++] = ch;
         }
-    } 
-    while (1);
+    }
 
-    display_summary(metrics, metric_idx);
-    display_thresh();
+    if (error_flag == 0)
+    {
+        display_summary(metrics, metric_idx);
+        display_thresh();
+    }
+    else
+        printf("Memory allocation failed");
 
     free(str);
-    for (int i = 0; i < metric_idx; i++)
-        free(metrics[i]);
+    if (metrics != NULL)
+        for (int i = 0; i < metric_idx; i++)
+            free(metrics[i]);
     free(metrics);
     fclose(file);
 
-    return 0;
+    return error_flag;
 }
 
 int main(int argc, char *argv[])
