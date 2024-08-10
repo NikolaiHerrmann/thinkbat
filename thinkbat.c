@@ -76,7 +76,7 @@ void display_summary(char **metrics, int metric_size)
     printf("\tState: %s\n", split(metrics[3]));
 
     float energy_full_design = atof(split(metrics[10]));
-    printf("\tCapacity: %.2f\%\n", (energy_full / energy_full_design) * 100);
+    printf("\tCapacity: %.2f\% (%.1f Wh / %.1f Wh) \n", (energy_full / energy_full_design) * 100, energy_full / 1000000, energy_full_design / 1000000);
     printf("\tCycle count: #%s\n", split(metrics[6]));
     float voltage = atof(split(metrics[8])) / 1000000;
     printf("\tVoltage: %.3f V\n", voltage);
